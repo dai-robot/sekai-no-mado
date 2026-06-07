@@ -1,6 +1,7 @@
 import type { Post } from '../types'
 import { PostCard } from './PostCard'
 import { todayHeading } from '../lib/time'
+import { useI18n } from '../i18n'
 
 export function WorldWindow({
   posts,
@@ -11,24 +12,25 @@ export function WorldWindow({
   loading: boolean
   onReport: (postId: string, reason: string) => void
 }) {
+  const { t, locale } = useI18n()
   return (
     <div>
       <div className="section-title">
-        <span>今日の世界</span>
-        <span className="date">{todayHeading()}</span>
+        <span>{t('window_today')}</span>
+        <span className="date">{todayHeading(locale)}</span>
       </div>
 
       {loading ? (
         <div className="empty">
           <span className="emoji">🪟</span>
-          今日の景色を読み込んでいます…
+          {t('window_loading')}
         </div>
       ) : posts.length === 0 ? (
         <div className="empty">
           <span className="emoji">🌫️</span>
-          まだ今日の投稿はありません。
+          {t('window_empty1')}
           <br />
-          世界のどこかで、最初の1枚を待っています。
+          {t('window_empty2')}
         </div>
       ) : (
         posts.map((p) => <PostCard key={p.id} post={p} onReport={onReport} />)

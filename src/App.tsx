@@ -5,12 +5,15 @@ import { BottleTab } from './components/BottleTab'
 import { CameraCapture } from './components/CameraCapture'
 import { CameraIcon } from './components/icons'
 import { getBackend } from './lib/backend'
+import { useI18n } from './i18n'
+import { LANGS, LANG_LABELS, type Lang } from './i18n/translations'
 import type { IncomingBottle, NewPostInput, Post } from './types'
 
 type CaptureMode = { kind: 'post' } | { kind: 'replyPhoto'; matchId: string } | null
 
 export default function App() {
   const backend = getBackend()
+  const { t, lang, setLang } = useI18n()
 
   const [tab, setTab] = useState<TabKey>('window')
   const [posts, setPosts] = useState<Post[]>([])
@@ -33,11 +36,11 @@ export default function App() {
       setHasPosted(await backend.hasPostedToday())
     } catch (e) {
       console.error(e)
-      showToast('読み込みに失敗しました')
+      showToast(t('toast_loadError'))
     } finally {
       setPostsLoading(false)
     }
-  }, [backend, showToast])
+  }, [backend, showToast, t])
 
   const refreshIncoming = useCallback(async () => {
     setIncomingLoading(true)
@@ -57,7 +60,7 @@ export default function App() {
 
   function openPostCamera() {
     if (hasPosted) {
-      showToast('今日はもう投稿しました。また明日。')
+      showToast(t('toast_alreadyPosted'))
       return
     }
     setCapture({ kind: 'post' })
@@ -71,7 +74,7 @@ export default function App() {
       })
       if (res.ok) {
         await refreshIncoming()
-        showToast('写真で返事を届けました')
+        showToast(t('toast_replyPhoto'))
       }
       return res
     }
@@ -79,9 +82,7 @@ export default function App() {
     const res = await backend.createPost(input)
     if (res.ok) {
       await Promise.all([refreshPosts(), refreshIncoming()])
-      showToast(
-        res.delivered ? '世界に届きました。誰かにも届いています。' : '世界に届きました。'
-      )
+      showToast(res.delivered ? t('toast_postedDelivered') : t('toast_posted'))
     }
     return res
   }
@@ -90,26 +91,37 @@ export default function App() {
     const res = await backend.replyToBottle(matchId, { kind: 'reaction', reaction: reactionKey })
     if (res.ok) {
       await refreshIncoming()
-      showToast('気持ちを届けました')
+      showToast(t('toast_reaction'))
     } else {
-      showToast(res.reason ?? '返事できませんでした')
+      showToast(res.reason ?? t('toast_replyFail'))
     }
   }
 
   async function handleReport(postId: string, reason: string) {
     await backend.reportPost(postId, reason)
     await Promise.all([refreshPosts(), refreshIncoming()])
-    showToast('通報を受け付けました。表示を停止します。')
+    showToast(t('toast_reportDone'))
   }
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>世界の窓</h1>
-        <p className="sub">今日の地球を、そっと覗くアプリ</p>
-        {backend.mode === 'local' && (
-          <span className="mode-pill">ローカル・デモモード</span>
-        )}
+        <div className="lang-switch">
+          <select
+            aria-label={t('language')}
+            value={lang}
+            onChange={(e) => setLang(e.target.value as Lang)}
+          >
+            {LANGS.map((l) => (
+              <option key={l} value={l}>
+                {LANG_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <h1>{t('appName')}</h1>
+        <p className="sub">{t('tagline')}</p>
+        {backend.mode === 'local' && <span className="mode-pill">{t('modeLocal')}</span>}
       </header>
 
       <main className="content">
@@ -131,7 +143,7 @@ export default function App() {
         <button
           className={`fab${hasPosted ? ' done' : ''}`}
           onClick={openPostCamera}
-          aria-label="撮影する"
+          aria-label={t('fab_aria')}
         >
           <CameraIcon />
         </button>
@@ -141,8 +153,10 @@ export default function App() {
 
       {capture && (
         <CameraCapture
-          title={capture.kind === 'replyPhoto' ? '写真で返事する' : '今この瞬間を撮る'}
-          submitLabel={capture.kind === 'replyPhoto' ? '返事を流す' : '世界に流す'}
+          title={capture.kind === 'replyPhoto' ? t('camera_titleReply') : t('camera_titlePost')}
+          submitLabel={
+            capture.kind === 'replyPhoto' ? t('camera_submitReply') : t('camera_submitPost')
+          }
           allowComment={capture.kind !== 'replyPhoto'}
           onSubmit={handleSubmit}
           onClose={() => setCapture(null)}

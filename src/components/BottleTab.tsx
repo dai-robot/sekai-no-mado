@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { IncomingBottle } from '../types'
 import { REACTIONS, findReaction } from '../types'
 import { PostCard } from './PostCard'
+import { useI18n } from '../i18n'
+import type { TKey } from '../i18n/translations'
 
 function BottleIllust() {
   return (
@@ -36,12 +38,16 @@ export function BottleTab({
   onReact: (matchId: string, reactionKey: string) => void
   onReport: (postId: string, reason: string) => void
 }) {
+  const { t } = useI18n()
   const [picking, setPicking] = useState(false)
+  const reactionLabel = (key: string | null | undefined) =>
+    key ? t(`reaction_${key}` as TKey) : ''
+
   if (loading) {
     return (
       <div className="empty">
         <span className="emoji">🌊</span>
-        漂流瓶をさがしています…
+        {t('bottle_loading')}
       </div>
     )
   }
@@ -51,34 +57,24 @@ export function BottleTab({
       {!incoming ? (
         <div className="bottle-hero">
           <BottleIllust />
-          <p className="bottle-lead">
-            写真を送ると、
-            <br />
-            世界の誰かに届きます。
-            <br />
-            あなたにも1枚届きます。
-          </p>
+          <p className="bottle-lead">{t('bottle_lead')}</p>
           <div className="center-block">
             <button className="primary-btn" onClick={onShoot}>
-              撮影して流す
+              {t('bottle_shoot')}
             </button>
           </div>
-          <p className="bottle-note">
-            一度きりのやり取りです。相手を知ることはできません。
-            <br />
-            でも、世界のどこかで同じ時間を生きている誰かを感じられます。
-          </p>
+          <p className="bottle-note">{t('bottle_note')}</p>
         </div>
       ) : (
         <div>
           <div className="section-title">
-            <span>届きました</span>
+            <span>{t('bottle_arrived')}</span>
           </div>
           <PostCard post={incoming.post} onReport={onReport} />
 
           {incoming.reply || incoming.replyReaction ? (
             <>
-              <div className="bottle-section-label">あなたの返事</div>
+              <div className="bottle-section-label">{t('bottle_yourReply')}</div>
               {incoming.reply ? (
                 <PostCard post={incoming.reply} />
               ) : (
@@ -86,30 +82,24 @@ export function BottleTab({
                   <span className="reaction-emoji">
                     {findReaction(incoming.replyReaction)?.emoji ?? '✨'}
                   </span>
-                  <span>{findReaction(incoming.replyReaction)?.label ?? 'リアクション'}</span>
+                  <span>{reactionLabel(incoming.replyReaction)}</span>
                 </div>
               )}
-              <p className="bottle-note">
-                この漂流瓶のやり取りは、これで終わりです。
-                <br />
-                またいつか、別の誰かと。
-              </p>
+              <p className="bottle-note">{t('bottle_closed')}</p>
             </>
           ) : (
             <div className="reply-area">
               <p className="bottle-note" style={{ marginBottom: 10 }}>
-                1往復だけ返事ができます。写真か、気持ちのリアクションか、どちらか一つ。
-                <br />
-                言葉は添えられません。
+                {t('bottle_replyIntro')}
               </p>
 
               {!picking ? (
                 <div className="reply-choice">
                   <button className="primary-btn" onClick={() => onReplyPhoto(incoming.match.id)}>
-                    写真で返す
+                    {t('bottle_replyPhoto')}
                   </button>
                   <button className="ghost-btn" onClick={() => setPicking(true)}>
-                    リアクションで返す
+                    {t('bottle_replyReaction')}
                   </button>
                 </div>
               ) : (
@@ -121,11 +111,11 @@ export function BottleTab({
                       onClick={() => onReact(incoming.match.id, r.key)}
                     >
                       <span className="reaction-emoji">{r.emoji}</span>
-                      <span>{r.label}</span>
+                      <span>{reactionLabel(r.key)}</span>
                     </button>
                   ))}
                   <button className="ghost-btn reaction-cancel" onClick={() => setPicking(false)}>
-                    もどる
+                    {t('bottle_back')}
                   </button>
                 </div>
               )}

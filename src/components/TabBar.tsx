@@ -1,4 +1,5 @@
 import { BottleIcon, WindowIcon } from './icons'
+import { useI18n } from '../i18n'
 
 export type TabKey = 'bottle' | 'window'
 
@@ -9,23 +10,24 @@ export function TabBar({
   active: TabKey
   onChange: (t: TabKey) => void
 }) {
+  const { t } = useI18n()
   return (
     <nav className="tabbar">
       <button
         className={active === 'bottle' ? 'active' : ''}
         onClick={() => onChange('bottle')}
-        aria-label="漂流瓶"
+        aria-label={t('tab_bottle')}
       >
         <BottleIcon />
-        漂流瓶
+        {t('tab_bottle')}
       </button>
       <button
         className={active === 'window' ? 'active' : ''}
         onClick={() => onChange('window')}
-        aria-label="世界の窓"
+        aria-label={t('tab_window')}
       >
         <WindowIcon />
-        世界の窓
+        {t('tab_window')}
       </button>
     </nav>
   )

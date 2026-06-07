@@ -20,9 +20,9 @@ export function isToday(iso: string): boolean {
   return localDateKey(new Date(iso)) === localDateKey()
 }
 
-/** 「今日（土）6月7日」のような見出し用文字列 */
-export function todayHeading(): string {
-  return new Date().toLocaleDateString('ja-JP', {
+/** 「6月7日(土)」のような見出し用文字列（ロケール対応） */
+export function todayHeading(locale = 'ja-JP'): string {
+  return new Date().toLocaleDateString(locale, {
     month: 'long',
     day: 'numeric',
     weekday: 'short'

@@ -65,12 +65,12 @@ export type BottleReply =
   | { kind: 'photo'; imageDataUrl: string }
   | { kind: 'reaction'; reaction: string }
 
-/** リアクションの選択肢（言葉ではなく気持ちだけを返す） */
-export const REACTIONS: { key: string; emoji: string; label: string }[] = [
-  { key: 'thanks', emoji: '🙏', label: 'ありがとう' },
-  { key: 'lovely', emoji: '✨', label: 'すてき' },
-  { key: 'smile', emoji: '🙂', label: 'ほっとした' },
-  { key: 'genki', emoji: '🌱', label: 'げんき出た' }
+/** リアクションの選択肢（言葉ではなく気持ちだけを返す）。表示ラベルはi18nで解決する。 */
+export const REACTIONS: { key: string; emoji: string }[] = [
+  { key: 'thanks', emoji: '🙏' },
+  { key: 'lovely', emoji: '✨' },
+  { key: 'smile', emoji: '🙂' },
+  { key: 'genki', emoji: '🌱' }
 ]
 
 export function findReaction(key: string | null | undefined) {

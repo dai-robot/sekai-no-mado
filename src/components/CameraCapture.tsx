@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NewPostInput } from '../types'
+import { useI18n } from '../i18n'
 
 type Phase = 'camera' | 'review'
 
 export function CameraCapture({
   title,
-  submitLabel = '送信する',
+  submitLabel,
   allowComment = true,
   onSubmit,
   onClose
@@ -17,6 +18,7 @@ export function CameraCapture({
   onSubmit: (input: NewPostInput) => Promise<{ ok: boolean; reason?: string }>
   onClose: () => void
 }) {
+  const { t } = useI18n()
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [phase, setPhase] = useState<Phase>('camera')
@@ -50,9 +52,7 @@ export function CameraCapture({
           await videoRef.current.play().catch(() => undefined)
         }
       } catch {
-        setCamError(
-          'カメラを起動できませんでした。\nこのアプリは端末のカメラ撮影のみに対応しています（画像アップロード不可）。\nブラウザのカメラ権限を確認してください。'
-        )
+        setCamError(t('camera_error'))
       }
     }
     start()
@@ -92,7 +92,7 @@ export function CameraCapture({
     const res = await onSubmit({ imageDataUrl: photo, comment: comment.trim() })
     setBusy(false)
     if (!res.ok) {
-      setError(res.reason ?? '送信できませんでした')
+      setError(res.reason ?? t('camera_failed'))
       return
     }
     onClose()
@@ -113,10 +113,12 @@ export function CameraCapture({
                 <video ref={videoRef} playsInline muted />
               )}
             </div>
-            {!camError && <button className="shutter" aria-label="撮影" onClick={capture} />}
+            {!camError && (
+              <button className="shutter" aria-label={t('camera_shutter')} onClick={capture} />
+            )}
             <div className="row-buttons">
               <button className="ghost-btn" onClick={onClose} style={{ margin: '0 auto' }}>
-                とじる
+                {t('camera_close')}
               </button>
             </div>
           </>
@@ -133,7 +135,7 @@ export function CameraCapture({
                   className="comment-field"
                   rows={2}
                   maxLength={50}
-                  placeholder="ひとこと（50文字まで）"
+                  placeholder={t('camera_placeholder')}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                 />
@@ -141,16 +143,16 @@ export function CameraCapture({
               </>
             ) : (
               <p className="bottle-note" style={{ marginTop: 12 }}>
-                漂流瓶への返信に言葉は添えられません。写真だけを返します。
+                {t('camera_noWords')}
               </p>
             )}
             {error && <p className="field-error">{error}</p>}
             <div className="row-buttons">
               <button className="ghost-btn" onClick={retake} disabled={busy}>
-                撮り直す
+                {t('camera_retake')}
               </button>
               <button className="primary-btn" onClick={submit} disabled={busy}>
-                {busy ? '送信中…' : submitLabel}
+                {busy ? t('camera_sending') : submitLabel ?? t('camera_submitPost')}
               </button>
             </div>
           </>
