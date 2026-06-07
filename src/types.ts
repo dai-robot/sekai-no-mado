@@ -51,6 +51,17 @@ export interface IncomingBottle {
   replyReaction: string | null
 }
 
+/** 自分が流した漂流瓶に届いた返事（相手＝瓶を受け取った人からの1往復） */
+export interface SentReply {
+  match: BottleMatch
+  /** 自分が流した投稿（瓶の中身） */
+  post: Post
+  /** 相手が写真で返してくれた場合の返信投稿 */
+  reply: Post | null
+  /** 相手がリアクションで返してくれた場合の絵文字キー */
+  replyReaction: string | null
+}
+
 /** 投稿に必要な入力（世界の窓への通常投稿。ひとことコメントあり） */
 export interface NewPostInput {
   imageDataUrl: string

@@ -5,7 +5,8 @@ import type {
   IncomingBottle,
   NewPostInput,
   Post,
-  Report
+  Report,
+  SentReply
 } from '../types'
 import type { Backend } from './backend'
 import { moderate } from './moderation'
@@ -244,6 +245,29 @@ export function createLocalBackend(): Backend {
         ? posts.find((p) => p.id === match.reply_post_id) ?? null
         : null
       return { match, post, reply, replyReaction: match.reply_reaction }
+    },
+
+    async getSentReplies(): Promise<SentReply[]> {
+      const matches = read<BottleMatch[]>(K.matches, [])
+      const posts = read<Post[]>(K.posts, [])
+      return matches
+        .filter(
+          (m) =>
+            m.sender_user_id === me.id &&
+            (m.reply_post_id || m.reply_reaction) &&
+            withinDays(m.created_at, POOL_DAYS)
+        )
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+        .map((m) => {
+          const post = posts.find((p) => p.id === m.post_id) ?? null
+          const reply = m.reply_post_id
+            ? posts.find((p) => p.id === m.reply_post_id) ?? null
+            : null
+          return post
+            ? { match: m, post, reply, replyReaction: m.reply_reaction }
+            : null
+        })
+        .filter((x): x is SentReply => x !== null)
     },
 
     async replyToBottle(matchId, reply: BottleReply) {

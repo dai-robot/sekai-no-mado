@@ -72,6 +72,9 @@ export type TKey =
   | 'bottle_back'
   | 'bottle_yourReply'
   | 'bottle_closed'
+  | 'bottle_sentTitle'
+  | 'bottle_sentYourPost'
+  | 'bottle_sentTheirReply'
   | 'reaction_thanks'
   | 'reaction_lovely'
   | 'reaction_smile'
@@ -131,6 +134,9 @@ const ja: Dict = {
   bottle_back: 'もどる',
   bottle_yourReply: 'あなたの返事',
   bottle_closed: 'この漂流瓶のやり取りは、これで終わりです。またいつか、別の誰かと。',
+  bottle_sentTitle: 'あなたが流した瓶に、返事が届きました',
+  bottle_sentYourPost: 'あなたが流した瓶',
+  bottle_sentTheirReply: '相手からの返事',
   reaction_thanks: 'ありがとう',
   reaction_lovely: 'すてき',
   reaction_smile: 'ほっとした',
@@ -190,6 +196,9 @@ const en: Dict = {
   bottle_back: 'Back',
   bottle_yourReply: 'Your reply',
   bottle_closed: 'This bottle exchange is now complete. Until next time, with someone new.',
+  bottle_sentTitle: 'A reply arrived for the bottle you set adrift',
+  bottle_sentYourPost: 'The bottle you set adrift',
+  bottle_sentTheirReply: 'Their reply',
   reaction_thanks: 'Thank you',
   reaction_lovely: 'Lovely',
   reaction_smile: 'Comforting',
@@ -246,6 +255,9 @@ const zh: Dict = {
   bottle_back: '返回',
   bottle_yourReply: '你的回复',
   bottle_closed: '这个漂流瓶的交流到此结束。下次，再与另一个人相遇。',
+  bottle_sentTitle: '你放出的漂流瓶收到了回信',
+  bottle_sentYourPost: '你放出的漂流瓶',
+  bottle_sentTheirReply: '对方的回信',
   reaction_thanks: '谢谢',
   reaction_lovely: '真美',
   reaction_smile: '安心了',
@@ -303,6 +315,9 @@ const ko: Dict = {
   bottle_back: '뒤로',
   bottle_yourReply: '당신의 답장',
   bottle_closed: '이 유리병 편지의 교류는 여기서 끝입니다. 언젠가 또, 다른 누군가와.',
+  bottle_sentTitle: '당신이 띄운 유리병에 답장이 도착했어요',
+  bottle_sentYourPost: '당신이 띄운 유리병',
+  bottle_sentTheirReply: '상대의 답장',
   reaction_thanks: '고마워요',
   reaction_lovely: '멋져요',
   reaction_smile: '안심돼요',
@@ -361,6 +376,9 @@ const es: Dict = {
   bottle_back: 'Atrás',
   bottle_yourReply: 'Tu respuesta',
   bottle_closed: 'Este intercambio de botella ha terminado. Hasta la próxima, con alguien nuevo.',
+  bottle_sentTitle: 'Llegó una respuesta a la botella que lanzaste',
+  bottle_sentYourPost: 'La botella que lanzaste',
+  bottle_sentTheirReply: 'Su respuesta',
   reaction_thanks: 'Gracias',
   reaction_lovely: 'Precioso',
   reaction_smile: 'Reconfortante',
@@ -419,6 +437,9 @@ const fr: Dict = {
   bottle_back: 'Retour',
   bottle_yourReply: 'Votre réponse',
   bottle_closed: 'Cet échange de bouteille est terminé. À une prochaine fois, avec quelqu’un d’autre.',
+  bottle_sentTitle: 'Une réponse est arrivée pour la bouteille que tu as lancée',
+  bottle_sentYourPost: 'La bouteille que tu as lancée',
+  bottle_sentTheirReply: 'Sa réponse',
   reaction_thanks: 'Merci',
   reaction_lovely: 'Magnifique',
   reaction_smile: 'Apaisant',
@@ -477,6 +498,9 @@ const pt: Dict = {
   bottle_back: 'Voltar',
   bottle_yourReply: 'Sua resposta',
   bottle_closed: 'Esta troca de garrafa terminou. Até a próxima, com alguém novo.',
+  bottle_sentTitle: 'Chegou uma resposta para a garrafa que você lançou',
+  bottle_sentYourPost: 'A garrafa que você lançou',
+  bottle_sentTheirReply: 'A resposta da outra pessoa',
   reaction_thanks: 'Obrigado',
   reaction_lovely: 'Lindo',
   reaction_smile: 'Reconfortante',
@@ -535,6 +559,9 @@ const de: Dict = {
   bottle_back: 'Zurück',
   bottle_yourReply: 'Deine Antwort',
   bottle_closed: 'Dieser Flaschenpost-Austausch ist beendet. Bis zum nächsten Mal, mit jemand Neuem.',
+  bottle_sentTitle: 'Auf deine ausgesandte Flasche kam eine Antwort',
+  bottle_sentYourPost: 'Deine ausgesandte Flasche',
+  bottle_sentTheirReply: 'Die Antwort der anderen Person',
   reaction_thanks: 'Danke',
   reaction_lovely: 'Wunderschön',
   reaction_smile: 'Beruhigend',

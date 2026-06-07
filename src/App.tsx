@@ -7,7 +7,7 @@ import { CameraIcon } from './components/icons'
 import { getBackend } from './lib/backend'
 import { useI18n } from './i18n'
 import { LANGS, LANG_LABELS, type Lang } from './i18n/translations'
-import type { IncomingBottle, NewPostInput, Post } from './types'
+import type { IncomingBottle, NewPostInput, Post, SentReply } from './types'
 
 type CaptureMode = { kind: 'post' } | { kind: 'replyPhoto'; matchId: string } | null
 
@@ -19,6 +19,7 @@ export default function App() {
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
   const [incoming, setIncoming] = useState<IncomingBottle | null>(null)
+  const [sentReplies, setSentReplies] = useState<SentReply[]>([])
   const [incomingLoading, setIncomingLoading] = useState(true)
   const [hasPosted, setHasPosted] = useState(false)
   const [capture, setCapture] = useState<CaptureMode>(null)
@@ -45,7 +46,12 @@ export default function App() {
   const refreshIncoming = useCallback(async () => {
     setIncomingLoading(true)
     try {
-      setIncoming(await backend.getIncomingBottle())
+      const [inc, sent] = await Promise.all([
+        backend.getIncomingBottle(),
+        backend.getSentReplies()
+      ])
+      setIncoming(inc)
+      setSentReplies(sent)
     } catch (e) {
       console.error(e)
     } finally {
@@ -130,6 +136,7 @@ export default function App() {
         ) : (
           <BottleTab
             incoming={incoming}
+            sentReplies={sentReplies}
             loading={incomingLoading}
             hasPosted={hasPosted}
             onShoot={openPostCamera}

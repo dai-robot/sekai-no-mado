@@ -5,7 +5,8 @@ import type {
   BottleReply,
   IncomingBottle,
   NewPostInput,
-  Post
+  Post,
+  SentReply
 } from '../types'
 import type { Backend, PostResult } from './backend'
 import { moderate } from './moderation'
@@ -242,6 +243,44 @@ export function createSupabaseBackend(): Backend {
         reply = (r as Post) ?? null
       }
       return { match: m, post: post as Post, reply, replyReaction: m.reply_reaction }
+    },
+
+    async getSentReplies(): Promise<SentReply[]> {
+      const user = await getCurrentUser()
+      const since = new Date(Date.now() - POOL_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      const { data: matches } = await sb
+        .from('bottle_matches')
+        .select('*')
+        .eq('sender_user_id', user.id)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+
+      const replied = ((matches ?? []) as BottleMatch[]).filter(
+        (m) => m.reply_post_id || m.reply_reaction
+      )
+      if (replied.length === 0) return []
+
+      // 関係する投稿（自分の元投稿 + 相手の写真返信）をまとめて取得
+      const ids = new Set<string>()
+      for (const m of replied) {
+        ids.add(m.post_id)
+        if (m.reply_post_id) ids.add(m.reply_post_id)
+      }
+      const { data: posts } = await sb
+        .from('posts')
+        .select('*')
+        .in('id', Array.from(ids))
+      const byId = new Map<string, Post>()
+      for (const p of (posts ?? []) as Post[]) byId.set(p.id, p)
+
+      const out: SentReply[] = []
+      for (const m of replied) {
+        const post = byId.get(m.post_id)
+        if (!post) continue
+        const reply = m.reply_post_id ? byId.get(m.reply_post_id) ?? null : null
+        out.push({ match: m, post, reply, replyReaction: m.reply_reaction })
+      }
+      return out
     },
 
     async replyToBottle(matchId, reply: BottleReply): Promise<PostResult> {

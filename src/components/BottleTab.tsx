@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { IncomingBottle } from '../types'
+import type { IncomingBottle, SentReply } from '../types'
 import { REACTIONS, findReaction } from '../types'
 import { PostCard } from './PostCard'
 import { useI18n } from '../i18n'
@@ -25,6 +25,7 @@ function BottleIllust() {
 
 export function BottleTab({
   incoming,
+  sentReplies,
   loading,
   hasPosted,
   onShoot,
@@ -33,6 +34,7 @@ export function BottleTab({
   onReport
 }: {
   incoming: IncomingBottle | null
+  sentReplies: SentReply[]
   loading: boolean
   hasPosted: boolean
   onShoot: () => void
@@ -53,6 +55,31 @@ export function BottleTab({
       </div>
     )
   }
+
+  const sentRepliesBlock = sentReplies.length > 0 && (
+    <div className="sent-replies">
+      <div className="section-title">
+        <span>{t('bottle_sentTitle')}</span>
+      </div>
+      {sentReplies.map((sr) => (
+        <div className="sent-reply" key={sr.match.id}>
+          <div className="bottle-section-label">{t('bottle_sentTheirReply')}</div>
+          {sr.reply ? (
+            <PostCard post={sr.reply} />
+          ) : (
+            <div className="reaction-sent">
+              <span className="reaction-emoji">
+                {findReaction(sr.replyReaction)?.emoji ?? '✨'}
+              </span>
+              <span>{reactionLabel(sr.replyReaction)}</span>
+            </div>
+          )}
+          <div className="bottle-section-label">{t('bottle_sentYourPost')}</div>
+          <PostCard post={sr.post} />
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <div>
@@ -131,6 +158,8 @@ export function BottleTab({
           )}
         </div>
       )}
+
+      {sentRepliesBlock}
     </div>
   )
 }

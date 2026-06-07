@@ -1,4 +1,11 @@
-import type { AppUser, BottleReply, IncomingBottle, NewPostInput, Post } from '../types'
+import type {
+  AppUser,
+  BottleReply,
+  IncomingBottle,
+  NewPostInput,
+  Post,
+  SentReply
+} from '../types'
 import { createLocalBackend } from './localBackend'
 import { createSupabaseBackend, hasSupabaseConfig } from './supabaseBackend'
 
@@ -25,6 +32,8 @@ export interface Backend {
   createPost(input: NewPostInput): Promise<PostResult>
   /** 自分宛に届いた漂流瓶（今日の1枚） */
   getIncomingBottle(): Promise<IncomingBottle | null>
+  /** 自分が流した漂流瓶に届いた返事（相手からの1往復）。新しい順 */
+  getSentReplies(): Promise<SentReply[]>
   /** 漂流瓶へ1往復だけ返信（写真 or リアクションのいずれか。言葉は不可） */
   replyToBottle(matchId: string, reply: BottleReply): Promise<PostResult>
   /** 投稿を通報 */
