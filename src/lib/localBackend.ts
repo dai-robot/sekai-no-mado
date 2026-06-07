@@ -240,10 +240,12 @@ export function createLocalBackend(): Backend {
       if (!match) return null
       const posts = read<Post[]>(K.posts, [])
       const post = posts.find((p) => p.id === match.post_id)
-      if (!post) return null
-      const reply = match.reply_post_id
+      // 通報などで非表示/未承認になった瓶は届けない
+      if (!post || !post.is_visible || post.moderation_status !== 'approved') return null
+      const replyPost = match.reply_post_id
         ? posts.find((p) => p.id === match.reply_post_id) ?? null
         : null
+      const reply = replyPost && replyPost.is_visible ? replyPost : null
       return { match, post, reply, replyReaction: match.reply_reaction }
     },
 
@@ -260,9 +262,10 @@ export function createLocalBackend(): Backend {
         .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
         .map((m) => {
           const post = posts.find((p) => p.id === m.post_id) ?? null
-          const reply = m.reply_post_id
+          const replyPost = m.reply_post_id
             ? posts.find((p) => p.id === m.reply_post_id) ?? null
             : null
+          const reply = replyPost && replyPost.is_visible ? replyPost : null
           return post
             ? { match: m, post, reply, replyReaction: m.reply_reaction }
             : null

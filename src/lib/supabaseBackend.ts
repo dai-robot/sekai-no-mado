@@ -230,7 +230,10 @@ export function createSupabaseBackend(): Backend {
         .from('posts')
         .select('*')
         .eq('id', m.post_id)
+        .eq('is_visible', true)
+        .eq('moderation_status', 'approved')
         .maybeSingle()
+      // 通報などで非表示になった瓶は届けない
       if (!post) return null
 
       let reply: Post | null = null
