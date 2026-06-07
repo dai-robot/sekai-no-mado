@@ -82,10 +82,7 @@ export function createSupabaseBackend(): Backend {
     return data.publicUrl
   }
 
-  async function savePost(
-    input: NewPostInput,
-    isReply = false
-  ): Promise<Post | { error: string }> {
+  async function savePost(input: NewPostInput): Promise<Post | { error: string }> {
     const mod = await moderate({ imageDataUrl: input.imageDataUrl, comment: input.comment })
     if (mod.status === 'rejected') return { error: mod.reason ?? '投稿できませんでした' }
 
@@ -101,13 +98,21 @@ export function createSupabaseBackend(): Backend {
         country: user.country,
         local_time: currentLocalTime(),
         is_visible: true,
-        is_reply: isReply,
         moderation_status: mod.status
       })
       .select('*')
       .single()
     if (error) return { error: error.message }
     return data as Post
+  }
+
+  /** 写真返信として使われた投稿IDの集合（世界の窓・漂流プールから除外用） */
+  async function fetchReplyPostIds(): Promise<Set<string>> {
+    const { data } = await sb
+      .from('bottle_matches')
+      .select('reply_post_id')
+      .not('reply_post_id', 'is', null)
+    return new Set((data ?? []).map((d) => d.reply_post_id as string))
   }
 
   /**
@@ -131,16 +136,21 @@ export function createSupabaseBackend(): Backend {
       .select('id, user_id')
       .neq('user_id', userId)
       .eq('is_visible', true)
-      .eq('is_reply', false)
       .eq('moderation_status', 'approved')
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(200)
     if (!candidates || candidates.length === 0) return
 
-    // すでに誰かに配信済みの投稿を除外（1つの瓶は1人にだけ届く）
-    const { data: delivered } = await sb.from('bottle_matches').select('post_id')
-    const taken = new Set((delivered ?? []).map((d) => d.post_id))
+    // すでに配信済みの投稿・写真返信を除外（1つの瓶は1人にだけ届く）
+    const { data: matches } = await sb
+      .from('bottle_matches')
+      .select('post_id, reply_post_id')
+    const taken = new Set<string>()
+    for (const m of matches ?? []) {
+      if (m.post_id) taken.add(m.post_id as string)
+      if (m.reply_post_id) taken.add(m.reply_post_id as string)
+    }
     const pool = candidates.filter((c) => !taken.has(c.id))
     if (pool.length === 0) return
 
@@ -165,10 +175,11 @@ export function createSupabaseBackend(): Backend {
         .from('posts')
         .select('id')
         .eq('user_id', user.id)
-        .eq('is_reply', false)
         .gte('created_at', start)
-        .limit(1)
-      return Boolean(data && data.length > 0)
+      if (!data || data.length === 0) return false
+      // 写真返信は「今日の投稿」に数えない
+      const replies = await fetchReplyPostIds()
+      return data.some((p) => !replies.has(p.id as string))
     },
 
     async getTodayPosts() {
@@ -177,17 +188,17 @@ export function createSupabaseBackend(): Backend {
         .from('posts')
         .select('*')
         .eq('is_visible', true)
-        .eq('is_reply', false)
         .eq('moderation_status', 'approved')
         .gte('created_at', start)
         .order('created_at', { ascending: false })
       if (error) throw error
-      return (data ?? []) as Post[]
+      const replies = await fetchReplyPostIds()
+      return ((data ?? []) as Post[]).filter((p) => !replies.has(p.id))
     },
 
     async createPost(input): Promise<PostResult> {
       // 受信者は決めず、投稿はそのまま「漂流プール」に流す。
-      const saved = await savePost(input, false)
+      const saved = await savePost(input)
       if ('error' in saved) return { ok: false, reason: saved.error }
       const user = await getCurrentUser()
 
@@ -252,8 +263,8 @@ export function createSupabaseBackend(): Backend {
         return { ok: true }
       }
 
-      // 写真で返信（言葉は不可なのでコメントは空。is_reply=true でプール/一覧から除外）
-      const saved = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' }, true)
+      // 写真で返信（言葉は不可なのでコメントは空。reply_post_id 経由でプール/一覧から除外）
+      const saved = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' })
       if ('error' in saved) return { ok: false, reason: saved.error }
       await sb
         .from('bottle_matches')

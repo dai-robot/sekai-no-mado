@@ -15,7 +15,7 @@ export default function App() {
   const backend = getBackend()
   const { t, lang, setLang } = useI18n()
 
-  const [tab, setTab] = useState<TabKey>('window')
+  const [tab, setTab] = useState<TabKey>('bottle')
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(true)
   const [incoming, setIncoming] = useState<IncomingBottle | null>(null)

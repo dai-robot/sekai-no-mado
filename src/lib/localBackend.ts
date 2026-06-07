@@ -75,6 +75,13 @@ function withinDays(iso: string, days: number): boolean {
   return Date.now() - new Date(iso).getTime() <= days * 24 * 60 * 60 * 1000
 }
 
+/** 漂流瓶への「写真返信」として使われた投稿IDの集合（世界の窓・プールから除外用） */
+function replyPostIds(matches: BottleMatch[]): Set<string> {
+  return new Set(
+    matches.map((m) => m.reply_post_id).filter((id): id is string => !!id)
+  )
+}
+
 function ensureSeed(meId: string): void {
   if (localStorage.getItem(K.seeded)) return
 
@@ -92,7 +99,6 @@ function ensureSeed(meId: string): void {
       // 今日扱いになるよう、現在時刻から少しずらした時刻にする
       created_at: new Date(now - (i + 1) * 60_000).toISOString(),
       is_visible: true,
-      is_reply: false,
       moderation_status: 'approved'
     })
   })
@@ -127,15 +133,16 @@ function pullBottle(meId: string): void {
   )
   if (todayOne) return
 
-  // すでに誰かに配信済みの投稿は除外（1つの瓶は1人にだけ届く）
+  // すでに誰かに配信済みの投稿、および写真返信は除外（1つの瓶は1人にだけ届く）
   const delivered = new Set(matches.map((m) => m.post_id))
+  const replies = replyPostIds(matches)
 
   const posts = read<Post[]>(K.posts, [])
   const pool = posts.filter(
     (p) =>
       p.user_id !== meId &&
       p.is_visible &&
-      !p.is_reply &&
+      !replies.has(p.id) &&
       p.moderation_status === 'approved' &&
       withinDays(p.created_at, POOL_DAYS) &&
       !delivered.has(p.id)
@@ -160,10 +167,7 @@ export function createLocalBackend(): Backend {
   const me = getUser()
   ensureSeed(me.id)
 
-  async function savePost(
-    input: NewPostInput,
-    isReply = false
-  ): Promise<Post | { error: string }> {
+  async function savePost(input: NewPostInput): Promise<Post | { error: string }> {
     const mod = await moderate({ imageDataUrl: input.imageDataUrl, comment: input.comment })
     if (mod.status === 'rejected') {
       return { error: mod.reason ?? '投稿できませんでした' }
@@ -177,7 +181,6 @@ export function createLocalBackend(): Backend {
       local_time: currentLocalTime(),
       created_at: new Date().toISOString(),
       is_visible: true,
-      is_reply: isReply,
       moderation_status: mod.status
     }
     const posts = read<Post[]>(K.posts, [])
@@ -195,18 +198,21 @@ export function createLocalBackend(): Backend {
 
     async hasPostedToday() {
       const posts = read<Post[]>(K.posts, [])
+      const replies = replyPostIds(read<BottleMatch[]>(K.matches, []))
       return posts.some(
-        (p) => p.user_id === me.id && !p.is_reply && isToday(p.created_at)
+        (p) =>
+          p.user_id === me.id && !replies.has(p.id) && isToday(p.created_at)
       )
     },
 
     async getTodayPosts() {
       const posts = read<Post[]>(K.posts, [])
+      const replies = replyPostIds(read<BottleMatch[]>(K.matches, []))
       return posts
         .filter(
           (p) =>
             p.is_visible &&
-            !p.is_reply &&
+            !replies.has(p.id) &&
             p.moderation_status === 'approved' &&
             isToday(p.created_at)
         )
@@ -215,7 +221,7 @@ export function createLocalBackend(): Backend {
 
     async createPost(input) {
       // 受信者は決めず、投稿はそのまま「漂流プール」に流す。
-      const result = await savePost(input, false)
+      const result = await savePost(input)
       if ('error' in result) return { ok: false, reason: result.error }
 
       // 自分にも、プールから1枚引き当てて届ける
@@ -255,8 +261,8 @@ export function createLocalBackend(): Backend {
         return { ok: true }
       }
 
-      // 写真で返信（言葉は不可なのでコメントは空。is_reply=true でプール/一覧から除外）
-      const result = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' }, true)
+      // 写真で返信（言葉は不可なのでコメントは空。reply_post_id 経由でプール/一覧から除外）
+      const result = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' })
       if ('error' in result) return { ok: false, reason: result.error }
       match.reply_post_id = result.id
       match.status = 'replied'

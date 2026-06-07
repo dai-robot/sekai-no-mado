@@ -28,11 +28,11 @@ create table if not exists public.posts (
   local_time        text not null default '',  -- "HH:mm"
   created_at        timestamptz not null default now(),
   is_visible        boolean not null default true,
-  -- 漂流瓶への「写真返信」は is_reply=true。世界の窓や漂流プールから除外する。
-  is_reply          boolean not null default false,
   moderation_status text not null default 'approved'
                     check (moderation_status in ('approved', 'pending', 'rejected'))
 );
+-- 注: 漂流瓶への「写真返信」は専用列を持たず、bottle_matches.reply_post_id
+--     から判定する（世界の窓・漂流プールの対象外にするため）。
 
 create index if not exists posts_created_at_idx on public.posts (created_at desc);
 create index if not exists posts_visible_idx on public.posts (is_visible, moderation_status, created_at desc);
