@@ -65,6 +65,7 @@ export type TKey =
   | 'bottle_note'
   | 'bottle_loading'
   | 'bottle_arrived'
+  | 'bottle_waiting'
   | 'bottle_replyIntro'
   | 'bottle_replyPhoto'
   | 'bottle_replyReaction'
@@ -90,8 +91,8 @@ const ja: Dict = {
   window_empty1: 'まだ今日の投稿はありません。',
   window_empty2: '世界のどこかで、最初の1枚を待っています。',
   fab_aria: '撮影する',
-  toast_postedDelivered: '世界に届きました。誰かにも届いています。',
-  toast_posted: '世界に届きました。',
+  toast_postedDelivered: '世界に流しました。いつか、誰かのもとへ。',
+  toast_posted: '世界に流しました。',
   toast_alreadyPosted: '今日はもう投稿しました。また明日。',
   toast_replyPhoto: '写真で返事を届けました',
   toast_reaction: '気持ちを届けました',
@@ -121,6 +122,8 @@ const ja: Dict = {
     '一度きりのやり取りです。相手を知ることはできません。でも、世界のどこかで同じ時間を生きている誰かを感じられます。',
   bottle_loading: '漂流瓶をさがしています…',
   bottle_arrived: '届きました',
+  bottle_waiting:
+    '今日はもう流しました。誰かの瓶が漂ってくるのを待ちましょう。',
   bottle_replyIntro:
     '1往復だけ返事ができます。写真か、気持ちのリアクションか、どちらか一つ。言葉は添えられません。',
   bottle_replyPhoto: '写真で返す',
@@ -146,8 +149,8 @@ const en: Dict = {
   window_empty1: 'No posts today yet.',
   window_empty2: 'Somewhere in the world, the first photo is awaited.',
   fab_aria: 'Take a photo',
-  toast_postedDelivered: 'Shared with the world. It reached someone, too.',
-  toast_posted: 'Shared with the world.',
+  toast_postedDelivered: 'Set adrift. It will reach someone, someday.',
+  toast_posted: 'Set adrift.',
   toast_alreadyPosted: 'You’ve already posted today. See you tomorrow.',
   toast_replyPhoto: 'Your photo reply was delivered.',
   toast_reaction: 'Your feeling was delivered.',
@@ -178,6 +181,8 @@ const en: Dict = {
     'A one-time exchange. You can’t know who they are. Still, you can feel someone living the same moment somewhere in the world.',
   bottle_loading: 'Looking for a bottle…',
   bottle_arrived: 'It arrived',
+  bottle_waiting:
+    'You’ve set one adrift today. Wait for a bottle to drift your way.',
   bottle_replyIntro:
     'You may reply just once. A photo or a feeling — choose one. No words can be added.',
   bottle_replyPhoto: 'Reply with a photo',
@@ -203,8 +208,8 @@ const zh: Dict = {
   window_empty1: '今天还没有投稿。',
   window_empty2: '在世界的某个角落，正等待着第一张照片。',
   fab_aria: '拍照',
-  toast_postedDelivered: '已分享给世界。也送到了某个人那里。',
-  toast_posted: '已分享给世界。',
+  toast_postedDelivered: '已放流。总有一天会漂到某个人那里。',
+  toast_posted: '已放流。',
   toast_alreadyPosted: '今天已经投稿过了。明天见。',
   toast_replyPhoto: '已用照片回复。',
   toast_reaction: '已传达你的心意。',
@@ -234,6 +239,7 @@ const zh: Dict = {
     '只有一次的交流，无法得知对方是谁。但你能感受到，世界某处有人和你共度此刻。',
   bottle_loading: '正在寻找漂流瓶…',
   bottle_arrived: '收到了',
+  bottle_waiting: '今天已经放流过了。静待某人的瓶子漂来吧。',
   bottle_replyIntro: '只能回复一次。照片或心情反应，二选一。不能附带文字。',
   bottle_replyPhoto: '用照片回复',
   bottle_replyReaction: '用反应回复',
@@ -258,8 +264,8 @@ const ko: Dict = {
   window_empty1: '아직 오늘의 게시물이 없습니다.',
   window_empty2: '세계 어딘가에서, 첫 번째 사진을 기다리고 있습니다.',
   fab_aria: '촬영하기',
-  toast_postedDelivered: '세계에 전해졌습니다. 누군가에게도 닿았어요.',
-  toast_posted: '세계에 전해졌습니다.',
+  toast_postedDelivered: '띄워 보냈습니다. 언젠가 누군가에게 닿을 거예요.',
+  toast_posted: '띄워 보냈습니다.',
   toast_alreadyPosted: '오늘은 이미 게시했어요. 내일 또 만나요.',
   toast_replyPhoto: '사진으로 답장을 보냈습니다.',
   toast_reaction: '마음을 전했습니다.',
@@ -289,6 +295,7 @@ const ko: Dict = {
     '단 한 번의 교류입니다. 상대가 누구인지는 알 수 없어요. 그래도 세계 어딘가에서 같은 시간을 사는 누군가를 느낄 수 있습니다.',
   bottle_loading: '유리병 편지를 찾는 중…',
   bottle_arrived: '도착했습니다',
+  bottle_waiting: '오늘은 이미 띄워 보냈어요. 누군가의 병이 떠오기를 기다려요.',
   bottle_replyIntro:
     '한 번만 답장할 수 있어요. 사진이나 마음의 리액션 중 하나만. 말은 덧붙일 수 없습니다.',
   bottle_replyPhoto: '사진으로 답장',
@@ -314,8 +321,8 @@ const es: Dict = {
   window_empty1: 'Aún no hay publicaciones hoy.',
   window_empty2: 'En algún lugar del mundo, se espera la primera foto.',
   fab_aria: 'Tomar una foto',
-  toast_postedDelivered: 'Compartido con el mundo. También llegó a alguien.',
-  toast_posted: 'Compartido con el mundo.',
+  toast_postedDelivered: 'Lanzado a la deriva. Algún día llegará a alguien.',
+  toast_posted: 'Lanzado a la deriva.',
   toast_alreadyPosted: 'Ya publicaste hoy. Hasta mañana.',
   toast_replyPhoto: 'Tu respuesta con foto fue entregada.',
   toast_reaction: 'Tu sentimiento fue entregado.',
@@ -345,6 +352,8 @@ const es: Dict = {
     'Un intercambio único. No puedes saber quién es. Aun así, sientes a alguien viviendo el mismo momento en algún lugar del mundo.',
   bottle_loading: 'Buscando una botella…',
   bottle_arrived: 'Ha llegado',
+  bottle_waiting:
+    'Ya lanzaste una hoy. Espera a que una botella llegue a ti.',
   bottle_replyIntro:
     'Solo puedes responder una vez. Una foto o una reacción: elige una. No se pueden añadir palabras.',
   bottle_replyPhoto: 'Responder con foto',
@@ -370,8 +379,8 @@ const fr: Dict = {
   window_empty1: 'Aucune publication aujourd’hui.',
   window_empty2: 'Quelque part dans le monde, la première photo est attendue.',
   fab_aria: 'Prendre une photo',
-  toast_postedDelivered: 'Partagé avec le monde. C’est aussi arrivé à quelqu’un.',
-  toast_posted: 'Partagé avec le monde.',
+  toast_postedDelivered: 'Lancé à la dérive. Il atteindra quelqu’un, un jour.',
+  toast_posted: 'Lancé à la dérive.',
   toast_alreadyPosted: 'Vous avez déjà publié aujourd’hui. À demain.',
   toast_replyPhoto: 'Votre réponse photo a été envoyée.',
   toast_reaction: 'Votre ressenti a été transmis.',
@@ -401,6 +410,8 @@ const fr: Dict = {
     'Un échange unique. Vous ne pouvez pas savoir qui c’est. Pourtant, vous ressentez quelqu’un vivant le même instant ailleurs dans le monde.',
   bottle_loading: 'Recherche d’une bouteille…',
   bottle_arrived: 'C’est arrivé',
+  bottle_waiting:
+    'Vous en avez déjà lancé une aujourd’hui. Attendez qu’une bouteille dérive vers vous.',
   bottle_replyIntro:
     'Vous ne pouvez répondre qu’une fois. Une photo ou une réaction : choisissez. Aucun mot possible.',
   bottle_replyPhoto: 'Répondre par une photo',
@@ -426,8 +437,8 @@ const pt: Dict = {
   window_empty1: 'Ainda não há publicações hoje.',
   window_empty2: 'Em algum lugar do mundo, espera-se a primeira foto.',
   fab_aria: 'Tirar uma foto',
-  toast_postedDelivered: 'Compartilhado com o mundo. Também chegou a alguém.',
-  toast_posted: 'Compartilhado com o mundo.',
+  toast_postedDelivered: 'Lançado à deriva. Um dia chegará a alguém.',
+  toast_posted: 'Lançado à deriva.',
   toast_alreadyPosted: 'Você já publicou hoje. Até amanhã.',
   toast_replyPhoto: 'Sua resposta com foto foi entregue.',
   toast_reaction: 'Seu sentimento foi entregue.',
@@ -457,6 +468,8 @@ const pt: Dict = {
     'Uma troca única. Você não pode saber quem é. Ainda assim, sente alguém vivendo o mesmo momento em algum lugar do mundo.',
   bottle_loading: 'Procurando uma garrafa…',
   bottle_arrived: 'Chegou',
+  bottle_waiting:
+    'Você já lançou uma hoje. Espere uma garrafa chegar até você.',
   bottle_replyIntro:
     'Você pode responder apenas uma vez. Uma foto ou uma reação — escolha uma. Sem palavras.',
   bottle_replyPhoto: 'Responder com foto',
@@ -482,8 +495,8 @@ const de: Dict = {
   window_empty1: 'Heute noch keine Beiträge.',
   window_empty2: 'Irgendwo auf der Welt wartet das erste Foto.',
   fab_aria: 'Foto aufnehmen',
-  toast_postedDelivered: 'Mit der Welt geteilt. Es hat auch jemanden erreicht.',
-  toast_posted: 'Mit der Welt geteilt.',
+  toast_postedDelivered: 'Treiben gelassen. Irgendwann erreicht es jemanden.',
+  toast_posted: 'Treiben gelassen.',
   toast_alreadyPosted: 'Du hast heute schon gepostet. Bis morgen.',
   toast_replyPhoto: 'Deine Fotoantwort wurde zugestellt.',
   toast_reaction: 'Dein Gefühl wurde übermittelt.',
@@ -513,6 +526,8 @@ const de: Dict = {
     'Ein einmaliger Austausch. Du kannst nicht wissen, wer es ist. Und doch spürst du jemanden, der irgendwo den gleichen Moment lebt.',
   bottle_loading: 'Suche nach einer Flaschenpost…',
   bottle_arrived: 'Angekommen',
+  bottle_waiting:
+    'Du hast heute schon eine treiben lassen. Warte, bis eine Flasche zu dir treibt.',
   bottle_replyIntro:
     'Du kannst nur einmal antworten. Ein Foto oder eine Reaktion – wähle eines. Keine Worte möglich.',
   bottle_replyPhoto: 'Mit Foto antworten',

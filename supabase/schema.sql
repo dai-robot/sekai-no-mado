@@ -28,6 +28,8 @@ create table if not exists public.posts (
   local_time        text not null default '',  -- "HH:mm"
   created_at        timestamptz not null default now(),
   is_visible        boolean not null default true,
+  -- 漂流瓶への「写真返信」は is_reply=true。世界の窓や漂流プールから除外する。
+  is_reply          boolean not null default false,
   moderation_status text not null default 'approved'
                     check (moderation_status in ('approved', 'pending', 'rejected'))
 );

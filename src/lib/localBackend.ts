@@ -68,6 +68,13 @@ const SEEDS: SeedSpec[] = [
   { country: 'KR', comment: '学校帰りの道', localTime: '14:42', colors: ['#c9b6d6', '#e8dcef'], label: 'On my way' }
 ]
 
+/** 漂流プールに残す日数（これより古い投稿は配信対象から外す） */
+const POOL_DAYS = 14
+
+function withinDays(iso: string, days: number): boolean {
+  return Date.now() - new Date(iso).getTime() <= days * 24 * 60 * 60 * 1000
+}
+
 function ensureSeed(meId: string): void {
   if (localStorage.getItem(K.seeded)) return
 
@@ -85,12 +92,12 @@ function ensureSeed(meId: string): void {
       // 今日扱いになるよう、現在時刻から少しずらした時刻にする
       created_at: new Date(now - (i + 1) * 60_000).toISOString(),
       is_visible: true,
+      is_reply: false,
       moderation_status: 'approved'
     })
   })
   write(K.posts, posts)
   localStorage.setItem(K.seeded, '1')
-  // meId は将来の拡張用（受信瓶の初期化などに使える）
   void meId
 }
 
@@ -108,21 +115,34 @@ function getUser(): AppUser {
   return user
 }
 
-/** 受信用の漂流瓶を「1日ひとつ」用意する（今日まだ届いていなければ1枚届ける） */
-function ensureIncoming(meId: string): void {
+/**
+ * 漂流ボトル・プール方式での「1日ひとつ」受信。
+ * 今日まだ受け取っていなければ、まだ誰にも届いていない他人の投稿を
+ * プールから1枚引き当てて配信する（当日縛りはなく直近 POOL_DAYS 日が対象）。
+ */
+function pullBottle(meId: string): void {
   const matches = read<BottleMatch[]>(K.matches, [])
   const todayOne = matches.find(
     (m) => m.receiver_user_id === meId && isToday(m.created_at)
   )
   if (todayOne) return
 
-  const posts = read<Post[]>(K.posts, [])
-  const candidates = posts.filter(
-    (p) => p.user_id !== meId && p.is_visible && isToday(p.created_at)
-  )
-  if (candidates.length === 0) return
+  // すでに誰かに配信済みの投稿は除外（1つの瓶は1人にだけ届く）
+  const delivered = new Set(matches.map((m) => m.post_id))
 
-  const chosen = candidates[Math.floor(Math.random() * candidates.length)]
+  const posts = read<Post[]>(K.posts, [])
+  const pool = posts.filter(
+    (p) =>
+      p.user_id !== meId &&
+      p.is_visible &&
+      !p.is_reply &&
+      p.moderation_status === 'approved' &&
+      withinDays(p.created_at, POOL_DAYS) &&
+      !delivered.has(p.id)
+  )
+  if (pool.length === 0) return
+
+  const chosen = pool[Math.floor(Math.random() * pool.length)]
   matches.push({
     id: uid(),
     sender_user_id: chosen.user_id,
@@ -136,18 +156,14 @@ function ensureIncoming(meId: string): void {
   write(K.matches, matches)
 }
 
-function replyPostIds(): Set<string> {
-  const matches = read<BottleMatch[]>(K.matches, [])
-  return new Set(
-    matches.map((m) => m.reply_post_id).filter((x): x is string => Boolean(x))
-  )
-}
-
 export function createLocalBackend(): Backend {
   const me = getUser()
   ensureSeed(me.id)
 
-  async function savePost(input: NewPostInput): Promise<Post | { error: string }> {
+  async function savePost(
+    input: NewPostInput,
+    isReply = false
+  ): Promise<Post | { error: string }> {
     const mod = await moderate({ imageDataUrl: input.imageDataUrl, comment: input.comment })
     if (mod.status === 'rejected') {
       return { error: mod.reason ?? '投稿できませんでした' }
@@ -161,6 +177,7 @@ export function createLocalBackend(): Backend {
       local_time: currentLocalTime(),
       created_at: new Date().toISOString(),
       is_visible: true,
+      is_reply: isReply,
       moderation_status: mod.status
     }
     const posts = read<Post[]>(K.posts, [])
@@ -177,64 +194,42 @@ export function createLocalBackend(): Backend {
     },
 
     async hasPostedToday() {
-      const replies = replyPostIds()
       const posts = read<Post[]>(K.posts, [])
       return posts.some(
-        (p) => p.user_id === me.id && isToday(p.created_at) && !replies.has(p.id)
+        (p) => p.user_id === me.id && !p.is_reply && isToday(p.created_at)
       )
     },
 
     async getTodayPosts() {
-      const replies = replyPostIds()
       const posts = read<Post[]>(K.posts, [])
       return posts
         .filter(
           (p) =>
             p.is_visible &&
+            !p.is_reply &&
             p.moderation_status === 'approved' &&
-            isToday(p.created_at) &&
-            !replies.has(p.id)
+            isToday(p.created_at)
         )
         .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
     },
 
     async createPost(input) {
-      const result = await savePost(input)
+      // 受信者は決めず、投稿はそのまま「漂流プール」に流す。
+      const result = await savePost(input, false)
       if ('error' in result) return { ok: false, reason: result.error }
 
-      // 自分の投稿を、世界の誰か1人(ランダム)へ届ける
-      const posts = read<Post[]>(K.posts, [])
-      const others = Array.from(
-        new Set(posts.filter((p) => p.user_id !== me.id).map((p) => p.user_id))
-      )
-      const matches = read<BottleMatch[]>(K.matches, [])
-      let delivered = false
-      if (others.length > 0) {
-        const receiver = others[Math.floor(Math.random() * others.length)]
-        matches.push({
-          id: uid(),
-          sender_user_id: me.id,
-          receiver_user_id: receiver,
-          post_id: result.id,
-          reply_post_id: null,
-          reply_reaction: null,
-          status: 'delivered',
-          created_at: new Date().toISOString()
-        })
-        write(K.matches, matches)
-        delivered = true
-      }
+      // 自分にも、プールから1枚引き当てて届ける
+      pullBottle(me.id)
 
-      // 自分にも1枚届ける
-      ensureIncoming(me.id)
-
-      return { ok: true, post: result, delivered }
+      return { ok: true, post: result, delivered: true }
     },
 
     async getIncomingBottle(): Promise<IncomingBottle | null> {
-      ensureIncoming(me.id)
+      pullBottle(me.id)
       const matches = read<BottleMatch[]>(K.matches, [])
-      const match = matches.find((m) => m.receiver_user_id === me.id)
+      const match = matches.find(
+        (m) => m.receiver_user_id === me.id && isToday(m.created_at)
+      )
       if (!match) return null
       const posts = read<Post[]>(K.posts, [])
       const post = posts.find((p) => p.id === match.post_id)
@@ -260,8 +255,8 @@ export function createLocalBackend(): Backend {
         return { ok: true }
       }
 
-      // 写真で返信（言葉は不可なのでコメントは空）
-      const result = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' })
+      // 写真で返信（言葉は不可なのでコメントは空。is_reply=true でプール/一覧から除外）
+      const result = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' }, true)
       if ('error' in result) return { ok: false, reason: result.error }
       match.reply_post_id = result.id
       match.status = 'replied'

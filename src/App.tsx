@@ -131,6 +131,7 @@ export default function App() {
           <BottleTab
             incoming={incoming}
             loading={incomingLoading}
+            hasPosted={hasPosted}
             onShoot={openPostCamera}
             onReplyPhoto={(matchId) => setCapture({ kind: 'replyPhoto', matchId })}
             onReact={handleReact}

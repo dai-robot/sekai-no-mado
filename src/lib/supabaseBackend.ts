@@ -16,6 +16,8 @@ const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 const BUCKET = (import.meta.env.VITE_SUPABASE_BUCKET as string | undefined) ?? 'photos'
 const ANON_KEY_STORAGE = 'mado.anonymous_id'
+/** 漂流プールに残す日数（これより古い投稿は配信対象から外す） */
+const POOL_DAYS = 14
 
 export function hasSupabaseConfig(): boolean {
   return Boolean(URL && KEY)
@@ -80,7 +82,10 @@ export function createSupabaseBackend(): Backend {
     return data.publicUrl
   }
 
-  async function savePost(input: NewPostInput): Promise<Post | { error: string }> {
+  async function savePost(
+    input: NewPostInput,
+    isReply = false
+  ): Promise<Post | { error: string }> {
     const mod = await moderate({ imageDataUrl: input.imageDataUrl, comment: input.comment })
     if (mod.status === 'rejected') return { error: mod.reason ?? '投稿できませんでした' }
 
@@ -96,12 +101,56 @@ export function createSupabaseBackend(): Backend {
         country: user.country,
         local_time: currentLocalTime(),
         is_visible: true,
+        is_reply: isReply,
         moderation_status: mod.status
       })
       .select('*')
       .single()
     if (error) return { error: error.message }
     return data as Post
+  }
+
+  /**
+   * 漂流ボトル・プール方式での受信。今日まだ受け取っていなければ、
+   * まだ誰にも届いていない他人の投稿（直近 POOL_DAYS 日・返信でない）を
+   * 1枚引き当てて配信する。
+   */
+  async function pullBottleIfNeeded(userId: string): Promise<void> {
+    const todayStart = `${localDateKey()}T00:00:00.000Z`
+    const { data: existing } = await sb
+      .from('bottle_matches')
+      .select('id')
+      .eq('receiver_user_id', userId)
+      .gte('created_at', todayStart)
+      .limit(1)
+    if (existing && existing.length > 0) return
+
+    const since = new Date(Date.now() - POOL_DAYS * 24 * 60 * 60 * 1000).toISOString()
+    const { data: candidates } = await sb
+      .from('posts')
+      .select('id, user_id')
+      .neq('user_id', userId)
+      .eq('is_visible', true)
+      .eq('is_reply', false)
+      .eq('moderation_status', 'approved')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (!candidates || candidates.length === 0) return
+
+    // すでに誰かに配信済みの投稿を除外（1つの瓶は1人にだけ届く）
+    const { data: delivered } = await sb.from('bottle_matches').select('post_id')
+    const taken = new Set((delivered ?? []).map((d) => d.post_id))
+    const pool = candidates.filter((c) => !taken.has(c.id))
+    if (pool.length === 0) return
+
+    const chosen = pool[Math.floor(Math.random() * pool.length)]
+    await sb.from('bottle_matches').insert({
+      sender_user_id: chosen.user_id,
+      receiver_user_id: userId,
+      post_id: chosen.id,
+      status: 'delivered'
+    })
   }
 
   return {
@@ -116,6 +165,7 @@ export function createSupabaseBackend(): Backend {
         .from('posts')
         .select('id')
         .eq('user_id', user.id)
+        .eq('is_reply', false)
         .gte('created_at', start)
         .limit(1)
       return Boolean(data && data.length > 0)
@@ -127,6 +177,7 @@ export function createSupabaseBackend(): Backend {
         .from('posts')
         .select('*')
         .eq('is_visible', true)
+        .eq('is_reply', false)
         .eq('moderation_status', 'approved')
         .gte('created_at', start)
         .order('created_at', { ascending: false })
@@ -135,32 +186,21 @@ export function createSupabaseBackend(): Backend {
     },
 
     async createPost(input): Promise<PostResult> {
-      const saved = await savePost(input)
+      // 受信者は決めず、投稿はそのまま「漂流プール」に流す。
+      const saved = await savePost(input, false)
       if ('error' in saved) return { ok: false, reason: saved.error }
       const user = await getCurrentUser()
 
-      // ランダムな受信者を選ぶ
-      const { data: others } = await sb
-        .from('users')
-        .select('id')
-        .neq('id', user.id)
-        .limit(200)
-      let delivered = false
-      if (others && others.length > 0) {
-        const receiver = others[Math.floor(Math.random() * others.length)]
-        await sb.from('bottle_matches').insert({
-          sender_user_id: user.id,
-          receiver_user_id: receiver.id,
-          post_id: saved.id,
-          status: 'delivered'
-        })
-        delivered = true
-      }
-      return { ok: true, post: saved, delivered }
+      // 自分にも、プールから1枚引き当てて届ける
+      await pullBottleIfNeeded(user.id)
+
+      return { ok: true, post: saved, delivered: true }
     },
 
     async getIncomingBottle(): Promise<IncomingBottle | null> {
       const user = await getCurrentUser()
+      await pullBottleIfNeeded(user.id)
+
       const start = `${localDateKey()}T00:00:00.000Z`
       // 1日ひとつ: 今日届いた最新の漂流瓶のみ
       const { data: match } = await sb
@@ -212,8 +252,8 @@ export function createSupabaseBackend(): Backend {
         return { ok: true }
       }
 
-      // 写真で返信（言葉は不可なのでコメントは空）
-      const saved = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' })
+      // 写真で返信（言葉は不可なのでコメントは空。is_reply=true でプール/一覧から除外）
+      const saved = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' }, true)
       if ('error' in saved) return { ok: false, reason: saved.error }
       await sb
         .from('bottle_matches')

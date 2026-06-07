@@ -16,6 +16,8 @@ export interface Post {
   local_time: string // 投稿者の現地時刻 "HH:mm"
   created_at: string // ISO datetime (UTC)
   is_visible: boolean
+  /** 漂流瓶への写真返信か（true は世界の窓・漂流プールから除外） */
+  is_reply: boolean
   moderation_status: ModerationStatus
 }
 

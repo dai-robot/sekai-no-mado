@@ -26,6 +26,7 @@ function BottleIllust() {
 export function BottleTab({
   incoming,
   loading,
+  hasPosted,
   onShoot,
   onReplyPhoto,
   onReact,
@@ -33,6 +34,7 @@ export function BottleTab({
 }: {
   incoming: IncomingBottle | null
   loading: boolean
+  hasPosted: boolean
   onShoot: () => void
   onReplyPhoto: (matchId: string) => void
   onReact: (matchId: string, reactionKey: string) => void
@@ -58,11 +60,17 @@ export function BottleTab({
         <div className="bottle-hero">
           <BottleIllust />
           <p className="bottle-lead">{t('bottle_lead')}</p>
-          <div className="center-block">
-            <button className="primary-btn" onClick={onShoot}>
-              {t('bottle_shoot')}
-            </button>
-          </div>
+          {hasPosted ? (
+            <p className="bottle-note" style={{ marginTop: 4 }}>
+              {t('bottle_waiting')}
+            </p>
+          ) : (
+            <div className="center-block">
+              <button className="primary-btn" onClick={onShoot}>
+                {t('bottle_shoot')}
+              </button>
+            </div>
+          )}
           <p className="bottle-note">{t('bottle_note')}</p>
         </div>
       ) : (
