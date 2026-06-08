@@ -172,15 +172,17 @@ export function createSupabaseBackend(): Backend {
     async hasPostedToday() {
       const user = await getCurrentUser()
       const start = `${localDateKey()}T00:00:00.000Z`
-      const { data } = await sb
-        .from('posts')
-        .select('id')
-        .eq('user_id', user.id)
-        .gte('created_at', start)
-      if (!data || data.length === 0) return false
-      // 写真返信は「今日の投稿」に数えない
-      const replies = await fetchReplyPostIds()
-      return data.some((p) => !replies.has(p.id as string))
+      const [{ data: posts }, { data: myReplies, error: replyErr }] = await Promise.all([
+        sb.from('posts').select('id').eq('user_id', user.id).gte('created_at', start),
+        sb
+          .from('bottle_matches')
+          .select('reply_post_id')
+          .eq('receiver_user_id', user.id)
+          .not('reply_post_id', 'is', null)
+      ])
+      if (replyErr) console.error('hasPostedToday reply lookup failed:', replyErr)
+      const replyIds = new Set((myReplies ?? []).map((m) => m.reply_post_id as string))
+      return (posts ?? []).some((p) => !replyIds.has(p.id as string))
     },
 
     async getTodayPosts() {
@@ -298,20 +300,27 @@ export function createSupabaseBackend(): Backend {
       }
 
       if (reply.kind === 'reaction') {
-        await sb
+        const { error } = await sb
           .from('bottle_matches')
           .update({ reply_reaction: reply.reaction, status: 'replied' })
           .eq('id', matchId)
+        if (error) return { ok: false, reason: error.message }
         return { ok: true }
       }
 
       // 写真で返信（言葉は不可なのでコメントは空。reply_post_id 経由でプール/一覧から除外）
       const saved = await savePost({ imageDataUrl: reply.imageDataUrl, comment: '' })
       if ('error' in saved) return { ok: false, reason: saved.error }
-      await sb
+      const { error: linkErr } = await sb
         .from('bottle_matches')
         .update({ reply_post_id: saved.id, status: 'replied' })
         .eq('id', matchId)
+      if (linkErr) {
+        console.error('replyToBottle link failed:', linkErr)
+        // 紐付けに失敗した孤立投稿は非表示にして1日1枚制限に数えないようにする
+        await sb.from('posts').update({ is_visible: false }).eq('id', saved.id)
+        return { ok: false, reason: linkErr.message }
+      }
       return { ok: true, post: saved }
     },
 

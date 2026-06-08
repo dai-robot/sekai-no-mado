@@ -79,8 +79,10 @@ export default function App() {
         imageDataUrl: input.imageDataUrl
       })
       if (res.ok) {
-        await refreshIncoming()
+        await Promise.all([refreshIncoming(), refreshPosts()])
         showToast(t('toast_replyPhoto'))
+      } else {
+        showToast(res.reason ?? t('toast_replyFail'))
       }
       return res
     }

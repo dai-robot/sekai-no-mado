@@ -106,6 +106,8 @@ create policy posts_update on public.posts for update using (true) with check (t
 -- bottle_matches
 drop policy if exists matches_all on public.bottle_matches;
 create policy matches_all on public.bottle_matches for all using (true) with check (true);
+drop policy if exists matches_update on public.bottle_matches;
+create policy matches_update on public.bottle_matches for update using (true) with check (true);
 
 -- reports
 drop policy if exists reports_insert on public.reports;

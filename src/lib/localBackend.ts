@@ -199,10 +199,16 @@ export function createLocalBackend(): Backend {
 
     async hasPostedToday() {
       const posts = read<Post[]>(K.posts, [])
-      const replies = replyPostIds(read<BottleMatch[]>(K.matches, []))
+      const matches = read<BottleMatch[]>(K.matches, [])
+      // 自分が受け取った瓶への写真返信だけは「今日の投稿」に数えない
+      const myReplyIds = new Set(
+        matches
+          .filter((m) => m.receiver_user_id === me.id && m.reply_post_id)
+          .map((m) => m.reply_post_id as string)
+      )
       return posts.some(
         (p) =>
-          p.user_id === me.id && !replies.has(p.id) && isToday(p.created_at)
+          p.user_id === me.id && !myReplyIds.has(p.id) && isToday(p.created_at)
       )
     },
 
