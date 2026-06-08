@@ -3,7 +3,6 @@ import { TabBar, type TabKey } from './components/TabBar'
 import { WorldWindow } from './components/WorldWindow'
 import { BottleTab } from './components/BottleTab'
 import { CameraCapture } from './components/CameraCapture'
-import { CameraIcon } from './components/icons'
 import { getBackend } from './lib/backend'
 import { useI18n } from './i18n'
 import { LANGS, LANG_LABELS, type Lang } from './i18n/translations'
@@ -148,16 +147,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {tab === 'bottle' && !hasPosted && (
-        <button
-          className="fab"
-          onClick={openPostCamera}
-          aria-label={t('bottle_shoot')}
-        >
-          <CameraIcon />
-        </button>
-      )}
 
       <TabBar active={tab} onChange={setTab} />
 

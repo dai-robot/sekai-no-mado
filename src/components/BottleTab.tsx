@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { IncomingBottle, SentReply } from '../types'
 import { REACTIONS, findReaction } from '../types'
 import { PostCard } from './PostCard'
+import { BottleIcon } from './icons'
 import { useI18n } from '../i18n'
 import type { TKey } from '../i18n/translations'
 
@@ -20,6 +21,15 @@ function BottleIllust() {
         <path d="M132 60l3 3M138 56l1 4M128 52l2 3" />
       </g>
     </svg>
+  )
+}
+
+function BottleShootButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button className="bottle-shoot-btn" onClick={onClick}>
+      <BottleIcon className="bottle-shoot-icon" />
+      <span>{label}</span>
+    </button>
   )
 }
 
@@ -86,18 +96,14 @@ export function BottleTab({
     incoming ? (
       <div className="shoot-banner">
         <p className="shoot-banner-lead">{t('bottle_shootPrompt')}</p>
-        <button className="primary-btn" onClick={onShoot}>
-          {t('bottle_shoot')}
-        </button>
+        <BottleShootButton label={t('bottle_shoot')} onClick={onShoot} />
       </div>
     ) : (
       <div className="bottle-hero">
         <BottleIllust />
         <p className="bottle-lead">{t('bottle_lead')}</p>
         <div className="center-block">
-          <button className="primary-btn" onClick={onShoot}>
-            {t('bottle_shoot')}
-          </button>
+          <BottleShootButton label={t('bottle_shoot')} onClick={onShoot} />
         </div>
         <p className="bottle-note">{t('bottle_note')}</p>
       </div>
