@@ -66,21 +66,28 @@ export function BottleTab({
     window.setTimeout(() => setSceneMode(hasPosted ? 'waiting' : 'idle'), 650)
   }
 
-  // 初回ロード後に瓶が届いたとき — 岸に打ち上げる
+  // 瓶が届いたとき — 同じ match では1回だけ（タブ切替では再生しない）
   useEffect(() => {
     if (loading) return
-    if (incoming && !hadIncoming.current) {
-      setShowArriveFx(true)
-      setSceneMode('arrive')
-      const t1 = window.setTimeout(() => setShowArriveFx(false), 2400)
-      const t2 = window.setTimeout(() => setSceneMode(hasPosted ? 'waiting' : 'idle'), 2600)
-      hadIncoming.current = true
-      return () => {
-        window.clearTimeout(t1)
-        window.clearTimeout(t2)
-      }
+    if (!incoming) {
+      hadIncoming.current = false
+      return
     }
-    if (!incoming) hadIncoming.current = false
+    const storageKey = `mado.arrive.${incoming.match.id}`
+    if (sessionStorage.getItem(storageKey)) {
+      hadIncoming.current = true
+      return
+    }
+    setShowArriveFx(true)
+    setSceneMode('arrive')
+    sessionStorage.setItem(storageKey, '1')
+    hadIncoming.current = true
+    const t1 = window.setTimeout(() => setShowArriveFx(false), 2400)
+    const t2 = window.setTimeout(() => setSceneMode(hasPosted ? 'waiting' : 'idle'), 2600)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+    }
   }, [incoming, loading, hasPosted])
 
   // 流した直後 — 海へ消えていく
