@@ -254,7 +254,7 @@ button {
   margin-top: 4px;
 }
 
-/* 瓶シーン（手描き風 SVG + アニメ） */
+/* 瓶シーン — D案: 手描き・素朴（点線の波、静かな浮き） */
 .bottle-scene {
   margin: 0 auto;
   user-select: none;
@@ -270,68 +270,49 @@ button {
   display: block;
   width: 100%;
   height: auto;
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* 海の流れ — 波が横に流れる */
-.bottle-scene--idle .bottle-waves-loop,
-.bottle-scene--wobble .bottle-waves-loop {
-  animation: sea-flow 10s linear infinite;
-}
-.bottle-scene--waiting .bottle-waves-loop {
-  animation: sea-flow 7s linear infinite;
-}
-.bottle-scene--drift .bottle-waves-loop {
-  animation: sea-flow-fast 2.6s linear forwards;
-}
-.bottle-scene--arrive .bottle-waves-loop {
-  animation: sea-flow-reverse 2.4s ease-out forwards;
-}
-
-/* 待機：波に乗ってゆらゆら流れる */
+/* 待機：瓶だけゆっくり上下 */
 .bottle-scene--idle .bottle-float,
-.bottle-scene--wobble .bottle-float {
-  animation: bottle-on-sea 10s ease-in-out infinite;
-  transform-origin: 120px 168px;
-}
 .bottle-scene--waiting .bottle-float {
-  animation: bottle-on-current 7s ease-in-out infinite;
-  transform-origin: 120px 168px;
+  animation: sketch-bob 4.5s ease-in-out infinite;
+  transform-origin: 120px 165px;
 }
-.bottle-scene--idle .bottle-ripple,
-.bottle-scene--waiting .bottle-ripple,
-.bottle-scene--wobble .bottle-ripple {
-  animation: ripple-pulse 10s ease-in-out infinite;
-  transform-origin: 120px 168px;
+.bottle-scene--idle .bottle-sketch-wave-1,
+.bottle-scene--waiting .bottle-sketch-wave-1 {
+  animation: sketch-dash 5s linear infinite;
+}
+.bottle-scene--idle .bottle-sketch-wave-2,
+.bottle-scene--waiting .bottle-sketch-wave-2 {
+  animation: sketch-dash 7s linear infinite reverse;
 }
 
-/* タップ：波に揺られる */
+/* タップ：軽く揺れる */
 .bottle-scene--wobble .bottle-float {
-  animation: bottle-wobble 0.65s ease-in-out;
+  animation: sketch-wobble 0.6s ease-in-out;
+  transform-origin: 120px 165px;
 }
 
-/* 流した直後：海流に乗って horizon へ */
+/* 流した直後：素朴に horizon へ */
 .bottle-scene--drift .bottle-float {
-  animation: bottle-drift-away 2.6s ease-in forwards;
-  transform-origin: 120px 168px;
+  animation: sketch-drift-away 2.4s ease-in forwards;
+  transform-origin: 120px 165px;
 }
-.bottle-scene--drift .bottle-ripple {
-  animation: ripple-trail 2.6s ease-out forwards;
-}
-.bottle-scene--drift .bottle-sea {
-  animation: sea-drift-zoom 2.6s ease-out forwards;
+.bottle-scene--drift .bottle-sketch-shadow {
+  animation: sketch-shadow-fade 2.4s ease-out forwards;
 }
 
-/* 届いた：波に乗って岸へ */
+/* 届いた：岸から滑り込む */
 .bottle-scene--arrive .bottle-float {
-  animation: bottle-arrive 2.4s cubic-bezier(0.22, 0.85, 0.3, 1) forwards;
-  transform-origin: 120px 168px;
+  animation: sketch-arrive 2.4s ease-out forwards;
+  transform-origin: 120px 165px;
 }
 .bottle-scene--arrive .bottle-sparkle {
-  animation: sparkle-pop 2.4s ease-out forwards;
+  animation: sketch-sparkle 2.4s ease-out forwards;
 }
-.bottle-scene--arrive .bottle-ripple {
-  animation: ripple-splash 2.4s ease-out forwards;
+.bottle-scene--arrive .bottle-sketch-shore {
+  animation: sketch-shore-in 2.4s ease-out forwards;
 }
 
 .bottle-drift-fx {
@@ -341,7 +322,7 @@ button {
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(247, 244, 238, 0.55), rgba(207, 228, 224, 0.35));
+  background: rgba(247, 244, 238, 0.72);
   animation: fx-fade 2.6s ease-out forwards;
 }
 .bottle-drift-fx .bottle-scene--large {
@@ -360,167 +341,84 @@ button {
   margin: 0;
 }
 
-@keyframes sea-flow {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-240px);
-  }
-}
-@keyframes sea-flow-fast {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-480px);
-  }
-}
-@keyframes sea-flow-reverse {
-  from {
-    transform: translateX(-120px);
-  }
-  to {
-    transform: translateX(40px);
-  }
-}
-@keyframes sea-drift-zoom {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.08);
-    opacity: 0.5;
-  }
-}
-
-/* 波の上を左右に流れる */
-@keyframes bottle-on-sea {
+@keyframes sketch-bob {
   0%,
   100% {
-    transform: translate(0, 0) rotate(13deg);
+    transform: translateY(0) rotate(12deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(10deg);
+  }
+}
+@keyframes sketch-dash {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+@keyframes sketch-wobble {
+  0% {
+    transform: translateY(0) rotate(12deg);
   }
   25% {
-    transform: translate(10px, -5px) rotate(16deg);
+    transform: translate(-4px, -3px) rotate(8deg);
   }
   50% {
-    transform: translate(18px, 1px) rotate(11deg);
+    transform: translate(5px, 1px) rotate(15deg);
   }
   75% {
-    transform: translate(8px, -4px) rotate(15deg);
+    transform: translate(-3px, -2px) rotate(10deg);
   }
-}
-@keyframes bottle-on-current {
-  0%,
   100% {
-    transform: translate(-14px, 1px) rotate(10deg);
-  }
-  50% {
-    transform: translate(14px, -3px) rotate(16deg);
+    transform: translateY(0) rotate(12deg);
   }
 }
-@keyframes ripple-pulse {
-  0%,
-  100% {
-    transform: scaleX(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scaleX(1.25);
-    opacity: 0.2;
-  }
-}
-@keyframes ripple-trail {
+@keyframes sketch-drift-away {
   0% {
-    transform: scaleX(1);
-    opacity: 0.4;
+    transform: translate(0, 0) rotate(12deg) scale(1);
+    opacity: 1;
   }
   100% {
-    transform: scaleX(2.2);
+    transform: translate(88px, -32px) rotate(5deg) scale(0.52);
     opacity: 0;
   }
 }
-@keyframes ripple-splash {
-  0% {
-    transform: scale(0.4);
+@keyframes sketch-shadow-fade {
+  to {
     opacity: 0;
+    transform: scaleX(1.8);
   }
-  40% {
-    transform: scale(1.3);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(1);
+}
+@keyframes sketch-arrive {
+  0% {
+    transform: translate(-72px, 18px) rotate(-8deg) scale(0.85);
     opacity: 0.25;
   }
-}
-
-@keyframes bottle-wobble {
-  0% {
-    transform: translate(0, 0) rotate(13deg);
-  }
-  20% {
-    transform: translate(-5px, -3px) rotate(8deg);
-  }
-  40% {
-    transform: translate(7px, 2px) rotate(18deg);
-  }
-  60% {
-    transform: translate(-4px, -2px) rotate(10deg);
-  }
-  80% {
-    transform: translate(3px, 1px) rotate(16deg);
-  }
-  100% {
-    transform: translate(0, 0) rotate(13deg);
-  }
-}
-@keyframes bottle-drift-away {
-  0% {
-    transform: translate(0, 0) rotate(13deg) scale(1);
-    opacity: 1;
-  }
-  20% {
-    transform: translate(12px, -4px) rotate(10deg) scale(1);
-  }
-  55% {
-    transform: translate(48px, -14px) rotate(6deg) scale(0.92);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(110px, -36px) rotate(-2deg) scale(0.5);
-    opacity: 0;
-  }
-}
-@keyframes bottle-arrive {
-  0% {
-    transform: translate(-100px, 24px) rotate(-18deg) scale(0.4);
-    opacity: 0;
-  }
-  45% {
-    transform: translate(-12px, -2px) rotate(18deg) scale(1.05);
-    opacity: 1;
-  }
   70% {
-    transform: translate(6px, 3px) rotate(11deg) scale(0.98);
+    transform: translate(4px, -2px) rotate(14deg) scale(1.02);
+    opacity: 1;
   }
   100% {
-    transform: translate(0, 0) rotate(13deg) scale(1);
+    transform: translate(0, 0) rotate(12deg) scale(1);
     opacity: 1;
   }
 }
-@keyframes sparkle-pop {
+@keyframes sketch-sparkle {
   0% {
     opacity: 0;
-    transform: scale(0.6);
   }
   40% {
     opacity: 1;
-    transform: scale(1);
   }
   100% {
     opacity: 0;
+  }
+}
+@keyframes sketch-shore-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.35;
   }
 }
 @keyframes fx-fade {
@@ -544,13 +442,10 @@ button {
   .bottle-scene--wobble .bottle-float,
   .bottle-scene--drift .bottle-float,
   .bottle-scene--arrive .bottle-float,
-  .bottle-scene--idle .bottle-waves-loop,
-  .bottle-scene--waiting .bottle-waves-loop,
-  .bottle-scene--wobble .bottle-waves-loop,
-  .bottle-scene--drift .bottle-waves-loop,
-  .bottle-scene--drift .bottle-sea,
-  .bottle-scene--idle .bottle-ripple,
-  .bottle-scene--waiting .bottle-ripple,
+  .bottle-scene--idle .bottle-sketch-wave-1,
+  .bottle-scene--idle .bottle-sketch-wave-2,
+  .bottle-scene--waiting .bottle-sketch-wave-1,
+  .bottle-scene--waiting .bottle-sketch-wave-2,
   .bottle-drift-fx,
   .bottle-arrive-fx {
     animation: none !important;
