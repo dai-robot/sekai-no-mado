@@ -22,6 +22,7 @@ export default function App() {
   const [incomingLoading, setIncomingLoading] = useState(true)
   const [hasPosted, setHasPosted] = useState(false)
   const [capture, setCapture] = useState<CaptureMode>(null)
+  const [driftTick, setDriftTick] = useState(0)
   const [toast, setToast] = useState('')
 
   const showToast = useCallback((msg: string) => {
@@ -88,6 +89,7 @@ export default function App() {
     // 通常投稿
     const res = await backend.createPost(input)
     if (res.ok) {
+      setDriftTick((n) => n + 1)
       await Promise.all([refreshPosts(), refreshIncoming()])
       showToast(res.delivered ? t('toast_postedDelivered') : t('toast_posted'))
     }
@@ -140,6 +142,7 @@ export default function App() {
             sentReplies={sentReplies}
             loading={incomingLoading}
             hasPosted={hasPosted}
+            driftTick={driftTick}
             onShoot={openPostCamera}
             onReplyPhoto={(matchId) => setCapture({ kind: 'replyPhoto', matchId })}
             onReact={handleReact}
