@@ -149,11 +149,11 @@ export default function App() {
         )}
       </main>
 
-      {tab === 'window' && (
+      {tab === 'bottle' && !hasPosted && (
         <button
-          className={`fab${hasPosted ? ' done' : ''}`}
+          className="fab"
           onClick={openPostCamera}
-          aria-label={t('fab_aria')}
+          aria-label={t('bottle_shoot')}
         >
           <CameraIcon />
         </button>

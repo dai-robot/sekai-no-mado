@@ -230,6 +230,23 @@ button {
   text-align: center;
   padding: 18px 16px 4px;
 }
+.shoot-banner {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.5px dashed rgba(127, 168, 160, 0.55);
+  text-align: center;
+}
+.shoot-banner-lead {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.incoming-block {
+  margin-top: 4px;
+}
 .bottle-illust {
   width: 200px;
   max-width: 60%;

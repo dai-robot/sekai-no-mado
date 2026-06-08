@@ -81,84 +81,104 @@ export function BottleTab({
     </div>
   )
 
-  return (
-    <div>
-      {!incoming ? (
-        <div className="bottle-hero">
-          <BottleIllust />
-          <p className="bottle-lead">{t('bottle_lead')}</p>
-          {hasPosted ? (
-            <p className="bottle-note" style={{ marginTop: 4 }}>
-              {t('bottle_waiting')}
-            </p>
+  /** 今日の瓶を流す — 未投稿なら瓶が届いていても常に表示 */
+  const shootSection = !hasPosted && (
+    incoming ? (
+      <div className="shoot-banner">
+        <p className="shoot-banner-lead">{t('bottle_shootPrompt')}</p>
+        <button className="primary-btn" onClick={onShoot}>
+          {t('bottle_shoot')}
+        </button>
+      </div>
+    ) : (
+      <div className="bottle-hero">
+        <BottleIllust />
+        <p className="bottle-lead">{t('bottle_lead')}</p>
+        <div className="center-block">
+          <button className="primary-btn" onClick={onShoot}>
+            {t('bottle_shoot')}
+          </button>
+        </div>
+        <p className="bottle-note">{t('bottle_note')}</p>
+      </div>
+    )
+  )
+
+  /** 投稿済みで瓶が届いていない */
+  const waitingSection = hasPosted && !incoming && (
+    <div className="bottle-hero">
+      <BottleIllust />
+      <p className="bottle-lead">{t('bottle_lead')}</p>
+      <p className="bottle-note" style={{ marginTop: 4 }}>
+        {t('bottle_waiting')}
+      </p>
+    </div>
+  )
+
+  const incomingSection = incoming && (
+    <div className={!hasPosted ? 'incoming-block' : undefined}>
+      <div className="section-title">
+        <span>{t('bottle_arrived')}</span>
+      </div>
+      <PostCard post={incoming.post} onReport={onReport} />
+
+      {incoming.reply || incoming.replyReaction ? (
+        <>
+          <div className="bottle-section-label">{t('bottle_yourReply')}</div>
+          {incoming.reply ? (
+            <PostCard post={incoming.reply} />
           ) : (
-            <div className="center-block">
-              <button className="primary-btn" onClick={onShoot}>
-                {t('bottle_shoot')}
-              </button>
+            <div className="reaction-sent">
+              <span className="reaction-emoji">
+                {findReaction(incoming.replyReaction)?.emoji ?? '✨'}
+              </span>
+              <span>{reactionLabel(incoming.replyReaction)}</span>
             </div>
           )}
-          <p className="bottle-note">{t('bottle_note')}</p>
-        </div>
+          <p className="bottle-note">{t('bottle_closed')}</p>
+        </>
       ) : (
-        <div>
-          <div className="section-title">
-            <span>{t('bottle_arrived')}</span>
-          </div>
-          <PostCard post={incoming.post} onReport={onReport} />
+        <div className="reply-area">
+          <p className="bottle-note" style={{ marginBottom: 10 }}>
+            {t('bottle_replyIntro')}
+          </p>
 
-          {incoming.reply || incoming.replyReaction ? (
-            <>
-              <div className="bottle-section-label">{t('bottle_yourReply')}</div>
-              {incoming.reply ? (
-                <PostCard post={incoming.reply} />
-              ) : (
-                <div className="reaction-sent">
-                  <span className="reaction-emoji">
-                    {findReaction(incoming.replyReaction)?.emoji ?? '✨'}
-                  </span>
-                  <span>{reactionLabel(incoming.replyReaction)}</span>
-                </div>
-              )}
-              <p className="bottle-note">{t('bottle_closed')}</p>
-            </>
+          {!picking ? (
+            <div className="reply-choice">
+              <button className="primary-btn" onClick={() => onReplyPhoto(incoming.match.id)}>
+                {t('bottle_replyPhoto')}
+              </button>
+              <button className="ghost-btn" onClick={() => setPicking(true)}>
+                {t('bottle_replyReaction')}
+              </button>
+            </div>
           ) : (
-            <div className="reply-area">
-              <p className="bottle-note" style={{ marginBottom: 10 }}>
-                {t('bottle_replyIntro')}
-              </p>
-
-              {!picking ? (
-                <div className="reply-choice">
-                  <button className="primary-btn" onClick={() => onReplyPhoto(incoming.match.id)}>
-                    {t('bottle_replyPhoto')}
-                  </button>
-                  <button className="ghost-btn" onClick={() => setPicking(true)}>
-                    {t('bottle_replyReaction')}
-                  </button>
-                </div>
-              ) : (
-                <div className="reaction-grid">
-                  {REACTIONS.map((r) => (
-                    <button
-                      key={r.key}
-                      className="reaction-btn"
-                      onClick={() => onReact(incoming.match.id, r.key)}
-                    >
-                      <span className="reaction-emoji">{r.emoji}</span>
-                      <span>{reactionLabel(r.key)}</span>
-                    </button>
-                  ))}
-                  <button className="ghost-btn reaction-cancel" onClick={() => setPicking(false)}>
-                    {t('bottle_back')}
-                  </button>
-                </div>
-              )}
+            <div className="reaction-grid">
+              {REACTIONS.map((r) => (
+                <button
+                  key={r.key}
+                  className="reaction-btn"
+                  onClick={() => onReact(incoming.match.id, r.key)}
+                >
+                  <span className="reaction-emoji">{r.emoji}</span>
+                  <span>{reactionLabel(r.key)}</span>
+                </button>
+              ))}
+              <button className="ghost-btn reaction-cancel" onClick={() => setPicking(false)}>
+                {t('bottle_back')}
+              </button>
             </div>
           )}
         </div>
       )}
+    </div>
+  )
 
+  return (
+    <div>
+      {shootSection}
+      {waitingSection}
+      {incomingSection}
       {sentRepliesBlock}
     </div>
   )
