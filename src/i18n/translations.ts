@@ -42,6 +42,7 @@ export type TKey =
   | 'toast_replyPhoto'
   | 'toast_reaction'
   | 'toast_reportDone'
+  | 'toast_reportFail'
   | 'toast_loadError'
   | 'toast_replyFail'
   | 'camera_titlePost'
@@ -101,6 +102,7 @@ const ja: Dict = {
   toast_replyPhoto: '写真で返事を届けました',
   toast_reaction: '気持ちを届けました',
   toast_reportDone: '通報を受け付けました。表示を停止します。',
+  toast_reportFail: '通報できませんでした。しばらくしてからお試しください。',
   toast_loadError: '読み込みに失敗しました',
   toast_replyFail: '返事できませんでした',
   camera_titlePost: '瓶に入れて流す',
@@ -163,6 +165,7 @@ const en: Dict = {
   toast_replyPhoto: 'Your photo reply was delivered.',
   toast_reaction: 'Your feeling was delivered.',
   toast_reportDone: 'Report received. This post will be hidden.',
+  toast_reportFail: 'Could not report this post. Please try again.',
   toast_loadError: 'Failed to load.',
   toast_replyFail: 'Could not reply.',
   camera_titlePost: 'Put in a bottle & set adrift',
@@ -226,6 +229,7 @@ const zh: Dict = {
   toast_replyPhoto: '已用照片回复。',
   toast_reaction: '已传达你的心意。',
   toast_reportDone: '已收到举报。该投稿将被隐藏。',
+  toast_reportFail: '举报失败，请稍后再试。',
   toast_loadError: '加载失败。',
   toast_replyFail: '无法回复。',
   camera_titlePost: '装入瓶中放流',
@@ -286,6 +290,7 @@ const ko: Dict = {
   toast_replyPhoto: '사진으로 답장을 보냈습니다.',
   toast_reaction: '마음을 전했습니다.',
   toast_reportDone: '신고를 접수했습니다. 이 게시물을 숨깁니다.',
+  toast_reportFail: '신고하지 못했습니다. 잠시 후 다시 시도해 주세요.',
   toast_loadError: '불러오지 못했습니다.',
   toast_replyFail: '답장할 수 없습니다.',
   camera_titlePost: '유리병에 담아 띄우기',
@@ -347,6 +352,7 @@ const es: Dict = {
   toast_replyPhoto: 'Tu respuesta con foto fue entregada.',
   toast_reaction: 'Tu sentimiento fue entregado.',
   toast_reportDone: 'Reporte recibido. Esta publicación se ocultará.',
+  toast_reportFail: 'No se pudo reportar. Inténtalo de nuevo.',
   toast_loadError: 'Error al cargar.',
   toast_replyFail: 'No se pudo responder.',
   camera_titlePost: 'Mete en la botella y déjala a la deriva',
@@ -409,6 +415,7 @@ const fr: Dict = {
   toast_replyPhoto: 'Votre réponse photo a été envoyée.',
   toast_reaction: 'Votre ressenti a été transmis.',
   toast_reportDone: 'Signalement reçu. Cette publication sera masquée.',
+  toast_reportFail: 'Impossible de signaler. Réessayez plus tard.',
   toast_loadError: 'Échec du chargement.',
   toast_replyFail: 'Impossible de répondre.',
   camera_titlePost: 'Mettre dans la bouteille et lancer',
@@ -471,6 +478,7 @@ const pt: Dict = {
   toast_replyPhoto: 'Sua resposta com foto foi entregue.',
   toast_reaction: 'Seu sentimento foi entregue.',
   toast_reportDone: 'Denúncia recebida. Esta publicação será ocultada.',
+  toast_reportFail: 'Não foi possível denunciar. Tente novamente.',
   toast_loadError: 'Falha ao carregar.',
   toast_replyFail: 'Não foi possível responder.',
   camera_titlePost: 'Colocar na garrafa e lançar',
@@ -533,6 +541,7 @@ const de: Dict = {
   toast_replyPhoto: 'Deine Fotoantwort wurde zugestellt.',
   toast_reaction: 'Dein Gefühl wurde übermittelt.',
   toast_reportDone: 'Meldung erhalten. Dieser Beitrag wird ausgeblendet.',
+  toast_reportFail: 'Meldung fehlgeschlagen. Bitte später erneut versuchen.',
   toast_loadError: 'Laden fehlgeschlagen.',
   toast_replyFail: 'Antwort nicht möglich.',
   camera_titlePost: 'In die Flasche legen & treiben lassen',

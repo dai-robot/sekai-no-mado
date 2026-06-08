@@ -326,13 +326,31 @@ export function createSupabaseBackend(): Backend {
 
     async reportPost(postId, reason) {
       const user = await getCurrentUser()
-      await sb.from('reports').insert({
+      const { error: reportErr } = await sb.from('reports').insert({
         post_id: postId,
         reporter_user_id: user.id,
         reason
       })
-      // MVP: 通報された投稿をすぐ非表示に（本番はサーバ側で判定するのが望ましい）
+      if (reportErr) return { ok: false, reason: reportErr.message }
+
+      // DBトリガー（migration_002）があれば insert 時点で非表示になる。
+      // 念のためクライアントからも更新を試みる（RLS で失敗してもよい）。
       await sb.from('posts').update({ is_visible: false }).eq('id', postId)
+
+      // RLS 上、非表示の投稿は select できない → 見えなければ成功
+      const { data: stillVisible } = await sb
+        .from('posts')
+        .select('id')
+        .eq('id', postId)
+        .maybeSingle()
+      if (stillVisible) {
+        return {
+          ok: false,
+          reason:
+            '通報は記録しましたが、非表示にできませんでした。Supabase SQL Editor で migration_002_report_hide_trigger.sql を実行してください。'
+        }
+      }
+      return { ok: true }
     }
   }
 }

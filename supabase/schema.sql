@@ -113,6 +113,27 @@ create policy matches_update on public.bottle_matches for update using (true) wi
 drop policy if exists reports_insert on public.reports;
 create policy reports_insert on public.reports for insert with check (true);
 
+-- 通報 INSERT 時に posts を非表示（RLS を bypass する SECURITY DEFINER トリガー）
+create or replace function public.hide_post_on_report()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.posts
+  set is_visible = false
+  where id = new.post_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_report_hide_post on public.reports;
+create trigger on_report_hide_post
+  after insert on public.reports
+  for each row
+  execute function public.hide_post_on_report();
+
 -- storage: photos バケットへの公開読み取り & アップロード許可
 drop policy if exists photos_read on storage.objects;
 create policy photos_read on storage.objects for select

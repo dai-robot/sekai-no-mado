@@ -314,13 +314,12 @@ export function createLocalBackend(): Backend {
       })
       write(K.reports, reports)
 
-      // 通報された投稿はすぐ非表示にする（MVP）
       const posts = read<Post[]>(K.posts, [])
       const target = posts.find((p) => p.id === postId)
-      if (target) {
-        target.is_visible = false
-        write(K.posts, posts)
-      }
+      if (!target) return { ok: false, reason: '投稿が見つかりません' }
+      target.is_visible = false
+      write(K.posts, posts)
+      return { ok: true }
     }
   }
 }

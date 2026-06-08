@@ -107,9 +107,31 @@ export default function App() {
   }
 
   async function handleReport(postId: string, reason: string) {
-    await backend.reportPost(postId, reason)
-    await Promise.all([refreshPosts(), refreshIncoming()])
-    showToast(t('toast_reportDone'))
+    // 即座に UI から消す（楽観的更新）
+    setPosts((prev) => prev.filter((p) => p.id !== postId))
+    setIncoming((prev) => {
+      if (!prev) return null
+      if (prev.post.id === postId) return null
+      if (prev.reply?.id === postId) return { ...prev, reply: null }
+      return prev
+    })
+    setSentReplies((prev) =>
+      prev
+        .filter((sr) => sr.post.id !== postId && sr.reply?.id !== postId)
+        .map((sr) => ({
+          ...sr,
+          reply: sr.reply?.id === postId ? null : sr.reply
+        }))
+    )
+
+    const res = await backend.reportPost(postId, reason)
+    if (res.ok) {
+      await Promise.all([refreshPosts(), refreshIncoming()])
+      showToast(t('toast_reportDone'))
+    } else {
+      await Promise.all([refreshPosts(), refreshIncoming()])
+      showToast(res.reason ?? t('toast_reportFail'))
+    }
   }
 
   return (

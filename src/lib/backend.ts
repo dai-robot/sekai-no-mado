@@ -36,8 +36,8 @@ export interface Backend {
   getSentReplies(): Promise<SentReply[]>
   /** 漂流瓶へ1往復だけ返信（写真 or リアクションのいずれか。言葉は不可） */
   replyToBottle(matchId: string, reply: BottleReply): Promise<PostResult>
-  /** 投稿を通報 */
-  reportPost(postId: string, reason: string): Promise<void>
+  /** 投稿を通報（成功時は投稿を非表示） */
+  reportPost(postId: string, reason: string): Promise<PostResult>
 }
 
 let instance: Backend | null = null
